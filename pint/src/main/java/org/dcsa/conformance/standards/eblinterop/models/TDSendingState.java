@@ -145,6 +145,29 @@ public class TDSendingState {
       String sendingPartyName,
       String sendingEPUI,
       JsonNode receivingParty) {
+      return generateTransactionEntry(
+        payloadSigner,
+        previousEnvelopeTransferChainEntrySignedContentChecksum,
+        tdChecksum,
+        action,
+        sendingPlatform,
+        sendingPartyName,
+        sendingEPUI,
+        receivingParty,
+        null);
+    }
+
+  public static String generateTransactionEntry(
+      PayloadSigner payloadSigner,
+      String previousEnvelopeTransferChainEntrySignedContentChecksum,
+      String tdChecksum,
+      String action,
+      String sendingPlatform,
+      String sendingPartyName,
+      String sendingEPUI,
+      JsonNode receivingParty,
+      String issuanceManifestSignedContent) {
+      
     var latestEnvelopeTransferChainUnsigned =
         OBJECT_MAPPER
             .createObjectNode()
@@ -155,6 +178,10 @@ public class TDSendingState {
       latestEnvelopeTransferChainUnsigned.put(
           "previousEnvelopeTransferChainEntrySignedContentChecksum",
           previousEnvelopeTransferChainEntrySignedContentChecksum);
+    }
+    if (issuanceManifestSignedContent != null) {
+      latestEnvelopeTransferChainUnsigned.put(
+          "issuanceManifestSignedContent", issuanceManifestSignedContent);
     }
 
     latestEnvelopeTransferChainUnsigned

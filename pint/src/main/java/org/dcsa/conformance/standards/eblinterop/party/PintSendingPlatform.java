@@ -188,10 +188,7 @@ public class PintSendingPlatform extends ConformanceParty {
     body.set("transportDocument", tdPayload);
     body.set("envelopeManifestSignedContent", sendingState.getSignedManifest());
     body.set("envelopeTransferChain", sendingState.getSignedEnvelopeTransferChain());
-    var manifestNode = sendingState.getIssuanceManifestNode();
-    if (!manifestNode.isMissingNode()) {
-      body.set("issuanceManifestSignedContent", manifestNode);
-    }
+    // issuanceManifestSignedContent is now in the first transfer chain entry, not at envelope level
     var response = this.syncCounterpartPost("/v" + apiVersion.charAt(0) + "/envelopes", body);
     var responseBody = response.message().body().getJsonBody();
     sendingState.resetDocumentationState();
@@ -220,7 +217,8 @@ public class PintSendingPlatform extends ConformanceParty {
       ObjectNode payload,
       String tdChecksum,
       SenderTransmissionClass senderTransmissionClass,
-      ReceiverScenarioParameters rsp) {
+      ReceiverScenarioParameters rsp,
+      String issuanceManifestSignedContent) {
     var sendingPlatform = "BOLE";
     var receivingPlatform = rsp.receiverParty().path("eblPlatform").asText("!?");
     var sendingEPUI = "1234";
@@ -242,7 +240,8 @@ public class PintSendingPlatform extends ConformanceParty {
               sendingPlatform,
               "DCSA CTK issuer",
               "5432",
-              receiver);
+              receiver,
+              issuanceManifestSignedContent);
       previousChecksum = Checksums.sha256(transaction);
       transactions.add(transaction);
       action = "TRNS";
@@ -270,7 +269,8 @@ public class PintSendingPlatform extends ConformanceParty {
             sendingPlatform,
             sendingPartyName,
             sendingEPUI,
-            receiver);
+            receiver,
+            senderTransmissionClass == VALID_TRANSFER ? null : issuanceManifestSignedContent);
     transactions.add(latest);
     return latest;
   }
@@ -302,19 +302,21 @@ public class PintSendingPlatform extends ConformanceParty {
     var rsp = ReceiverScenarioParameters.fromJson(actionPrompt.required("rsp"));
     var tdChecksum = Checksums.sha256CanonicalJson(tdPayload);
 
-    var latestEnvelopeTransferChainEntrySigned =
-        generateTransactions(body, tdChecksum, senderTransmissionClass, rsp);
-    var unsignedEnvelopeManifest =
-        sendingState.generateEnvelopeManifest(
-            tdChecksum, Checksums.sha256(latestEnvelopeTransferChainEntrySigned));
     var issuanceManifest =
         OBJECT_MAPPER
             .createObjectNode()
             .put("documentChecksum", tdChecksum)
             // The receiver cannot validate the issueToChecksum anyway.
             .put("issueToChecksum", Checksums.sha256(UUID.randomUUID().toString()));
-    var issuanceManifestSignedContentNode =
-        TextNode.valueOf(CARRIER_PLATFORM_PAYLOAD_SIGNER.sign(issuanceManifest.toString()));
+    var issuanceManifestSignedContent =
+        CARRIER_PLATFORM_PAYLOAD_SIGNER.sign(issuanceManifest.toString());
+    var issuanceManifestSignedContentNode = TextNode.valueOf(issuanceManifestSignedContent);
+
+    var latestEnvelopeTransferChainEntrySigned =
+        generateTransactions(body, tdChecksum, senderTransmissionClass, rsp, issuanceManifestSignedContent);
+    var unsignedEnvelopeManifest =
+        sendingState.generateEnvelopeManifest(
+            tdChecksum, Checksums.sha256(latestEnvelopeTransferChainEntrySigned));
 
     JsonNode signedManifest =
         TextNode.valueOf(SENDING_PLATFORM_PAYLOAD_SIGNER.sign(unsignedEnvelopeManifest.toString()));
@@ -323,7 +325,6 @@ public class PintSendingPlatform extends ConformanceParty {
       signedManifest = mutatePayload(signedManifest);
     }
     sendingState.setIssuanceManifestNode(issuanceManifestSignedContentNode);
-    body.set("issuanceManifestSignedContent", issuanceManifestSignedContentNode);
     body.set("envelopeManifestSignedContent", signedManifest);
     var envelopeTransferChain = body.path("envelopeTransferChain");
     sendingState.setSignedEnvelopeTransferChain(envelopeTransferChain);
