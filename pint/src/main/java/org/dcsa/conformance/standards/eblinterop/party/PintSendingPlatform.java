@@ -186,6 +186,22 @@ public class PintSendingPlatform extends ConformanceParty {
     var body = OBJECT_MAPPER.createObjectNode();
     var tdPayload = loadTransportDocument(tdr);
     body.set("transportDocument", tdPayload);
+
+    // need to regenerate the envelope manifest
+    // because the lastEnvelopeTransferChainEntrySignedContentChecksum has changed (PS256 is not deterministic)
+    if (retryType == RetryType.RESIGN || retryType == RetryType.MANIPULATE) {
+      var tdChecksum = Checksums.sha256CanonicalJson(tdPayload);
+      var envelopeTransferChain = sendingState.getSignedEnvelopeTransferChain();
+      var lastEntryIndex = envelopeTransferChain.size() - 1;
+      var lastEnvelopeTransferChainEntrySigned = envelopeTransferChain.path(lastEntryIndex).asText();
+      var unsignedEnvelopeManifest =
+          sendingState.generateEnvelopeManifest(
+              tdChecksum, Checksums.sha256(lastEnvelopeTransferChainEntrySigned));
+      JsonNode signedManifest =
+          TextNode.valueOf(SENDING_PLATFORM_PAYLOAD_SIGNER.sign(unsignedEnvelopeManifest.toString()));
+      sendingState.setSignedManifest(signedManifest);
+    }
+
     body.set("envelopeManifestSignedContent", sendingState.getSignedManifest());
     body.set("envelopeTransferChain", sendingState.getSignedEnvelopeTransferChain());
     // issuanceManifestSignedContent is now in the first transfer chain entry, not at envelope level
