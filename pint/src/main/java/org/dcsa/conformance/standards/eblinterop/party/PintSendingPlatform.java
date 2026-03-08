@@ -244,7 +244,7 @@ public class PintSendingPlatform extends ConformanceParty {
       sendingPlatform = "WAVE";
     }
     var transactions = payload.putArray("envelopeTransferChain");
-    var action = "ISSU";
+    var actionCode = "ISSUE";
     String previousChecksum = null;
     if (senderTransmissionClass == VALID_TRANSFER) {
       var transaction =
@@ -252,7 +252,7 @@ public class PintSendingPlatform extends ConformanceParty {
               SENDING_PLATFORM_PAYLOAD_SIGNER,
               null,
               tdChecksum,
-              action,
+              actionCode,
               sendingPlatform,
               "DCSA CTK issuer",
               "5432",
@@ -260,7 +260,7 @@ public class PintSendingPlatform extends ConformanceParty {
               issuanceManifestSignedContent);
       previousChecksum = Checksums.sha256(transaction);
       transactions.add(transaction);
-      action = "TRNS";
+      actionCode = "TRANSFER";
     }
     if (senderTransmissionClass == WRONG_RECIPIENT_PLATFORM) {
       if (receivingPlatform.equals("WAVE")) {
@@ -281,7 +281,7 @@ public class PintSendingPlatform extends ConformanceParty {
             SENDING_PLATFORM_PAYLOAD_SIGNER,
             previousChecksum,
             tdChecksum,
-            action,
+            actionCode,
             sendingPlatform,
             sendingPartyName,
             sendingEPUI,

@@ -50,8 +50,8 @@ public class PintChecks {
   private static final String PREVIOUS_ENVELOPE_TRANSFER_CHAIN_ENTRY_SIGNED_CONTENT_CHECKSUM =
       "previousEnvelopeTransferChainEntrySignedContentChecksum";
   private static final String ISSUANCE_MANIFEST = "issuanceManifest";
-  private static final String ACTION = "action";
-  private static final String ISSU = "ISSU";
+  private static final String ACTION_CODE = "actionCode";
+  private static final String ISSUE = "ISSUE";
   private static final String DOCUMENT_CHECKSUM = "documentChecksum";
 
   private static final String SS = "/%s/%s";
@@ -475,7 +475,7 @@ public class PintChecks {
               var issues = new LinkedHashSet<String>();
               var hadIssuance = false;
               for (var transaction : payload.path(TRANSACTIONS)) {
-                if (transaction.path(ACTION).asText("").equals(ISSU)) {
+                if (transaction.path(ACTION_CODE).asText("").equals(ISSUE)) {
                   hadIssuance = true;
                   break;
                 }

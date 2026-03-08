@@ -110,7 +110,7 @@ public class TDSendingState {
   }
 
   public static ObjectNode generateTransaction(
-      String action,
+      String actionCode,
       String sendingPlatform,
       String sendingPartyName,
       String sendingEPUI,
@@ -128,9 +128,8 @@ public class TDSendingState {
     var transaction =
         OBJECT_MAPPER
             .createObjectNode()
-            .put("action", action)
-            .put("actionDateTime", Instant.now().toString())
-            .put("actionCode", "ISSUE");
+            .put("actionCode", actionCode)
+            .put("actionDateTime", Instant.now().toString());
     transaction.set("actor", actor);
     transaction.set("recipient", receiverParty);
     return transaction;
@@ -161,7 +160,7 @@ public class TDSendingState {
       PayloadSigner payloadSigner,
       String previousEnvelopeTransferChainEntrySignedContentChecksum,
       String tdChecksum,
-      String action,
+      String actionCode,
       String sendingPlatform,
       String sendingPartyName,
       String sendingEPUI,
@@ -188,7 +187,7 @@ public class TDSendingState {
         .putArray("transactions")
         .add(
             generateTransaction(
-                action, sendingPlatform, sendingPartyName, sendingEPUI, receivingParty));
+                actionCode, sendingPlatform, sendingPartyName, sendingEPUI, receivingParty));
 
     return payloadSigner.sign(latestEnvelopeTransferChainUnsigned.toString());
   }
