@@ -216,11 +216,11 @@ public class TDSendingState {
       sendingPlatform = "WAVE";
     }
     var newTransactionEntry =
-        generateTransaction("TRNS", sendingPlatform, sendingPartyName, sendingEPUI, receivingParty);
+        generateTransaction("TRANSFER", sendingPlatform, sendingPartyName, sendingEPUI, receivingParty);
 
-    ((ArrayNode) last.path("transactions")).insert(0, newTransactionEntry);
+    ((ArrayNode) last.path("transactions")).add(newTransactionEntry); // Fixed: append to end, not insert at index 0
 
-    var newSigned = payloadSigner.sign(last.toString());
+     var newSigned = payloadSigner.sign(last.toString());
     ((ArrayNode) chain).set(chain.size() - 1, newSigned);
   }
 
