@@ -4,7 +4,7 @@
   "transportDocumentTypeCode": "BOL",
   "freightPaymentTermCode": "PRE",
   "isElectronic": true,
-  "isToOrder": false,
+  "isToOrder": true,
   "contractQuotationReference": "12345",
   "invoicePayableAt": {
     "UNLocationCode": "DKAAR"
