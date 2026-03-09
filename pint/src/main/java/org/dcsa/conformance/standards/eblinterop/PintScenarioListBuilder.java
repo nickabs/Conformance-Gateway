@@ -152,7 +152,7 @@ class PintScenarioListBuilder extends ScenarioListBuilder<PintScenarioListBuilde
                                                                                         .RECE),
                                                                                 retryTransfer(
                                                                                     PintResponseCode
-                                                                                        .RECE,
+                                                                                        .DUPE,
                                                                                     SenderTransmissionClass
                                                                                         .VALID_TRANSFER)))))))))),
             Map.entry(
