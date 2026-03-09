@@ -247,8 +247,19 @@ public class PintSendingPlatform extends ConformanceParty {
     var actionCode = "ISSUE";
     String previousChecksum = null;
     if (senderTransmissionClass == VALID_TRANSFER) {
+        // workaround: hard code the receiver (the chain is now: BOLE issues to BOLE & BOLE TRANSFER to CARX)
+        // this is to avoid invalid chain where BOLE issues to CARX and then trys to transfer to CARX
+        var issueParty = OBJECT_MAPPER.createObjectNode()
+            .put("partyName", "Bole Party")
+            .put("eblPlatform", "BOLE");
+
+        issueParty.putArray("identifyingCodes")
+            .addObject()
+            .put("partyCode", "XYZ-bole-party")
+            .put("codeListProvider", "BOLE");
+
       var transaction =
-          generateTransactionEntry(
+        generateTransactionEntry(
               SENDING_PLATFORM_PAYLOAD_SIGNER,
               null,
               tdChecksum,
@@ -256,11 +267,11 @@ public class PintSendingPlatform extends ConformanceParty {
               sendingPlatform,
               "DCSA CTK issuer",
               "5432",
-              receiver,
-              issuanceManifestSignedContent);
-      previousChecksum = Checksums.sha256(transaction);
-      transactions.add(transaction);
-      actionCode = "TRANSFER";
+              issueParty, 
+            issuanceManifestSignedContent);
+        previousChecksum = Checksums.sha256(transaction);
+        transactions.add(transaction);
+        actionCode = "TRANSFER";
     }
     if (senderTransmissionClass == WRONG_RECIPIENT_PLATFORM) {
       if (receivingPlatform.equals("WAVE")) {
