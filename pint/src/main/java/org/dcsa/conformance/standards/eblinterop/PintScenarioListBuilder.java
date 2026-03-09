@@ -107,7 +107,7 @@ class PintScenarioListBuilder extends ScenarioListBuilder<PintScenarioListBuilde
                                                                         closeTransferAction(
                                                                             PintResponseCode.RECE),
                                                                         retryTransfer(
-                                                                            PintResponseCode.RECE,
+                                                                            PintResponseCode.DUPE,
                                                                             SenderTransmissionClass
                                                                                 .VALID_TRANSFER))),
                                                         transferDocument(
